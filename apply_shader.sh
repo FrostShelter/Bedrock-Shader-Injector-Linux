@@ -3,7 +3,7 @@
 # --- Setup Paths ---
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 CONFIG_FILE="$SCRIPT_DIR/.path_config"
-NEWB_DIR="$SCRIPT_DIR/MaterialsFiles"
+NEWB_DIR="$SCRIPT_DIR/ShaderFiles"
 BACKUP_DIR="$SCRIPT_DIR/Backups"
 
 # Create directories
@@ -43,7 +43,7 @@ clear
 echo "--- 🎮 Universal Bedrock Shader Injector ---"
 echo "📍 Game Path: $GAME_PATH"
 echo "--------------------------------------------"
-echo "1. Inject Shaders (MaterialsFiles -> Game) 🚀"
+echo "1. Inject Shaders (ShaderFiles -> Game) 🚀"
 echo "2. Restore Vanilla (Backups -> Game) 🧹"
 echo "3. Reset Game Path & Config 🔄"
 echo "--------------------------------------------"
@@ -51,13 +51,32 @@ read -p "Make a choice, bro! (1, 2 or 3): " choice
 
 case $choice in
     1)
-        echo "Injecting shaders... Buckle up! (づ｡◕‿‿◕｡)づ"
-        # Check if there are any .bin files in Shader folder
-        if ls "$NEWB_DIR"/*.bin 1> /dev/null 2>&1; then
-            cp -v "$NEWB_DIR"/*.bin "$GAME_PATH/"
-            echo "=> Done! Now go touch some (blocky) grass, bro. :)))"
+        echo "Auto-Extracting & Injecting... (づ｡◕‿‿◕｡)づ"
+
+        MCPACK_FILE=$(ls "$NEWB_DIR"/*.mcpack 2>/dev/null | head -n 1)
+
+        if [ -f "$MCPACK_FILE" ]; then
+            echo "📦 Found pack: $(basename "$MCPACK_FILE")"
+
+            TEMP_DIR="$NEWB_DIR/temp_extract"
+            mkdir -p "$TEMP_DIR"
+
+            # 3. Giải nén (Unzip) - .mcpack thực chất là file zip
+            unzip -q "$MCPACK_FILE" -d "$TEMP_DIR"
+
+            BIN_FILES=$(find "$TEMP_DIR" -name "*.bin")
+
+            if [ -n "$BIN_FILES" ]; then
+                cp -v $BIN_FILES "$GAME_PATH/"
+                echo "✅ Injection Successful! Shaders are now in your game."
+            else
+                echo "❌ Error: Could not find any .bin files inside the pack! :(("
+            fi
+
+            rm -rf "$TEMP_DIR"
+            echo "🧹 Temp files cleaned up."
         else
-            echo "❌ Damn it! MaterialsFiles is EMPTY, bro. What am I supposed to inject? Air? :(("
+            echo "❌ No .mcpack found in ShaderFiles! Did you forget to put it there, bro? =)))"
         fi
         ;;
     2)
